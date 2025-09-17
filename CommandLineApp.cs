@@ -20,7 +20,8 @@ namespace RssCli
             {
                 ["add"] = new AddCommand(storage, feedReader),
                 ["list"] = new ListCommand(storage),
-                ["show"] = new ShowCommand(storage, feedReader)
+                ["show"] = new ShowCommand(storage, feedReader),
+                ["open"] = new OpenCommand(storage, feedReader)
             };
 
             _helpProvider = new HelpProvider(_commands);

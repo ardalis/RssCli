@@ -1,16 +1,18 @@
-using RssCli.Interfaces;
+﻿using RssCli.Interfaces;
+using System.Diagnostics;
 
 namespace RssCli.Commands
 {
-    public class ShowCommand : ICommand
+    public class OpenCommand : ICommand
     {
         private readonly IFeedStorage _storage;
         private readonly IFeedReader _feedReader;
 
-        public string Name => "show";
-        public string Description => "Show recent posts from all feeds";
+        public string Name => "open";
 
-        public ShowCommand(IFeedStorage storage, IFeedReader feedReader)
+        public string Description => "Open post in browser by index";
+
+        public OpenCommand(IFeedStorage storage, IFeedReader feedReader)
         {
             _storage = storage;
             _feedReader = feedReader;
@@ -39,7 +41,6 @@ namespace RssCli.Commands
 
                 foreach (var feed in feeds)
                 {
-                    Console.WriteLine($"\n=== {feed.Title} ===");
                     try
                     {
                         var items = await _feedReader.GetFeedItemsAsync(feed.Url, 5);
@@ -53,8 +54,10 @@ namespace RssCli.Commands
                         foreach (var item in items)
                         {
                             index++;
-                            var publishDate = item.PublishDate?.ToString("MMM-dd HH:mm") ?? "Unknown date";
-                            Console.WriteLine($"{index})  [{publishDate}] {item.Title}\n");
+                            if (Convert.ToInt32(args[1]) == index)
+                            {
+                                using (Process.Start(new ProcessStartInfo(item.Link) { UseShellExecute = true })) ;
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -62,11 +65,12 @@ namespace RssCli.Commands
                         Console.WriteLine($"  Error reading feed: {ex.Message}");
                     }
                 }
+
                 return 0;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error showing posts: {ex.Message}");
+                Console.WriteLine($"Error opening post: {ex.Message}");
                 return 1;
             }
         }
@@ -74,14 +78,14 @@ namespace RssCli.Commands
         public void ShowHelp()
         {
             Console.WriteLine("USAGE:");
-            Console.WriteLine("    RssCli show");
+            Console.WriteLine("    RssCli open <index>");
             Console.WriteLine();
             Console.WriteLine("DESCRIPTION:");
-            Console.WriteLine("    Display the latest 5 posts from each stored RSS feed");
-            Console.WriteLine("    Shows post title, and publication date");
+            Console.WriteLine("    Opens the post in the browser");
+            Console.WriteLine("    The post will be selected by the entered index");
             Console.WriteLine();
             Console.WriteLine("EXAMPLE:");
-            Console.WriteLine("    RssCli show");
+            Console.WriteLine("    RssCli open 6");
         }
     }
 }
